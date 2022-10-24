@@ -11,7 +11,6 @@
 AWS_VPC_CIDR_BLOCK=192.168.4.0/24
 AWS_Subred_CIDR_BLOCK=192.168.4.0/24
 AWS_IP_Servidor=192.168.4.100
-AWS_IP_Cliente=192.168.4.200
 
 AWS_Nombre_Estudiante="javier" #usado para la clave
 
