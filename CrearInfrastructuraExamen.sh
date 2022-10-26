@@ -1,16 +1,19 @@
 ###########################################################
+#       Creación de una infrastructura para el examen
 #       Creación de una VPC, subred pública, 
 #       internet gateway, tabla de rutas, 
-#       grupo de seguridad e instancia EC2 Windows 2022
+#       grupo de seguridad y dos instancias EC2 Windows 2022 (EXAMEN-SOR-SERVIDOR Y EXAMEN-SOR-CLIENTE)
 #      en AWS con AWS CLI
 #  Autor: Javier González Pisano (basado en Javier Terán González)
 #  Fecha: 23/10/2022
 ###########################################################
 
-## Definición de variables
-AWS_VPC_CIDR_BLOCK=192.168.4.0/24
-AWS_Subred_CIDR_BLOCK=192.168.4.0/24
-AWS_IP_Servidor=192.168.4.100
+## Definición de variables. CAMBIA EL TERCER DIGITO DE LA SUBRED POR TU NUMERO DE EQUIPO
+## (Pregunta a tu profesor si no tienes claro tu número de equipo)
+AWS_VPC_CIDR_BLOCK=192.168.199.0/24
+AWS_Subred_CIDR_BLOCK=192.199.66.0/24
+AWS_IP_Servidor=192.168.199.100
+AWS_IP_Cliente=192.168.199.200
 
 AWS_Nombre_Estudiante="javier" #usado para la clave
 
@@ -22,7 +25,7 @@ echo "Creando VPC..."
 AWS_ID_VPC=$(aws ec2 create-vpc \
   --cidr-block $AWS_VPC_CIDR_BLOCK \
   --amazon-provided-ipv6-cidr-block \
-  --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=SOR-vpc}]' \
+  --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=EXAMEN-SOR-vpc}]' \
   --query 'Vpc.{VpcId:VpcId}' \
   --output text)
 
@@ -37,7 +40,7 @@ echo "Creando subred pública..."
 AWS_ID_SubredPublica=$(aws ec2 create-subnet \
   --vpc-id $AWS_ID_VPC --cidr-block $AWS_Subred_CIDR_BLOCK \
   --availability-zone us-east-1a \
-  --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=SOR-subred-publica}]' \
+  --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=EXAMEN-SOR-subred-publica}]' \
   --query 'Subnet.{SubnetId:SubnetId}' \
   --output text)
 
@@ -49,7 +52,7 @@ aws ec2 modify-subnet-attribute \
 echo "Creando y asignando Internet Gateway..."
 ## Crear un Internet Gateway (Puerta de enlace) con su etiqueta
 AWS_ID_InternetGateway=$(aws ec2 create-internet-gateway \
-  --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value=SOR-igw}]' \
+  --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value=EXAMEN-SOR-igw}]' \
   --query 'InternetGateway.{InternetGatewayId:InternetGatewayId}' \
   --output text)
 
@@ -85,12 +88,12 @@ AWS_DEFAULT_ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
   --output text) &&
 aws ec2 create-tags \
 --resources $AWS_DEFAULT_ROUTE_TABLE_ID \
---tags "Key=Name,Value=SOR ruta por defecto"
+--tags "Key=Name,Value=EXAMEN-SOR ruta por defecto"
 
 ## Añadir etiquetas a la tabla de rutas
 aws ec2 create-tags \
 --resources $AWS_ID_TablaRutas \
---tags "Key=Name,Value=SOR-rtb-public"
+--tags "Key=Name,Value=EXAMEN-SOR-rtb-public"
 
 
 
@@ -103,13 +106,13 @@ echo "Creando grupo de seguridad..."
 ## Crear un grupo de seguridad
 aws ec2 create-security-group \
   --vpc-id $AWS_ID_VPC \
-  --group-name SOR-Windows-SG \
-  --description 'SOR-Windows-SG'
+  --group-name EXAMEN-SOR-Windows-SG \
+  --description 'EXAMEN-SOR-Windows-SG'
 
 
 AWS_CUSTOM_SECURITY_GROUP_ID=$(aws ec2 describe-security-groups \
   --filters "Name=vpc-id,Values=$AWS_ID_VPC" \
-  --query 'SecurityGroups[?GroupName == `SOR-Windows-SG`].GroupId' \
+  --query 'SecurityGroups[?GroupName == `EXAMEN-SOR-Windows-SG`].GroupId' \
   --output text)
 
 ## Abrir los puertos de acceso a la instancia
@@ -127,17 +130,17 @@ aws ec2 create-tags \
 
 ## Crear una instancia EC2  (con una imagen Windows Server 2022 Base )
 
-echo "Creando instancia SERVIDOR..."
-AWS_AMI_ID=ami-07a53499a088e4a8c
+echo "Creando instancia EXAMEN-SOR-SERVIDOR..."
+AWS_AMI_ID=ami-07a53499a088e4a8c 
 AWS_EC2_INSTANCE_ID=$(aws ec2 run-instances \
   --image-id $AWS_AMI_ID \
-  --instance-type t2.small \
+  --instance-type t2.medium \
   --key-name "$AWS_Nombre_Estudiante" \
   --monitoring "Enabled=false" \
   --security-group-ids $AWS_CUSTOM_SECURITY_GROUP_ID \
   --subnet-id $AWS_ID_SubredPublica \
   --private-ip-address $AWS_IP_Servidor \
-  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=SOR-SERVIDOR}]' \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=EXAMEN-SOR-SERVIDOR}]' \
   --query 'Instances[0].InstanceId' \
   --output text)
 
@@ -146,7 +149,28 @@ AWS_EC2_INSTANCE_ID=$(aws ec2 run-instances \
  --filters "Name=instance-id,Values="$AWS_EC2_INSTANCE_ID \
  --query "Reservations[*].Instances[*].PublicIpAddress" \
  --output=text) &&
- echo "Creada instancia servidor con IP " $AWS_EC2_INSTANCE_PUBLIC_IP
+ echo "Creada instancia EXAMEN-SOR con IP " $AWS_EC2_INSTANCE_PUBLIC_IP
+
+echo "Creando instancia EXAMEN-SOR-CLIENTE..."
+AWS_AMI_ID=ami-07a53499a088e4a8c
+AWS_EC2_INSTANCE_ID2=$(aws ec2 run-instances \
+  --image-id $AWS_AMI_ID \
+  --instance-type t2.small \
+  --key-name "$AWS_Nombre_Estudiante" \
+  --monitoring "Enabled=false" \
+  --security-group-ids $AWS_CUSTOM_SECURITY_GROUP_ID \
+  --subnet-id $AWS_ID_SubredPublica \
+  --private-ip-address $AWS_IP_Cliente \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=EXAMEN-SOR-CLIENTE}]' \
+  --query 'Instances[0].InstanceId' \
+  --output text)
+
+## Mostrar la ip publica de la instancia
+ AWS_EC2_INSTANCE_PUBLIC_IP=$(aws ec2 describe-instances \
+ --filters "Name=instance-id,Values="$AWS_EC2_INSTANCE_ID2 \
+ --query "Reservations[*].Instances[*].PublicIpAddress" \
+ --output=text) &&
+ echo "Creada instancia EXAMEN-SOR-CLIENTE con IP " $AWS_EC2_INSTANCE_PUBLIC_IP
 
 
 ## aws ec2 describe-addresses

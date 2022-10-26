@@ -5,7 +5,7 @@
 ###########################################################
 
 ## Definición de variables
-AWS_VPC_CIDR_BLOCK=192.168.4.0/24
+AWS_VPC_CIDR_BLOCK=192.168.4.0/24 
 AWS_Subred_CIDR_BLOCK=192.168.4.0/24
 
 ## Crear una VPC (Virtual Private Cloud) con su etiqueta
