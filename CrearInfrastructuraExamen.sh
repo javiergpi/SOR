@@ -11,7 +11,7 @@
 ## Definición de variables. CAMBIA EL TERCER DIGITO DE LA SUBRED POR TU NUMERO DE EQUIPO
 ## (Pregunta a tu profesor si no tienes claro tu número de equipo)
 AWS_VPC_CIDR_BLOCK=192.168.199.0/24
-AWS_Subred_CIDR_BLOCK=192.199.66.0/24
+AWS_Subred_CIDR_BLOCK=192.168.199.0/24
 AWS_IP_Servidor=192.168.199.100
 AWS_IP_Cliente=192.168.199.200
 
@@ -171,6 +171,11 @@ AWS_EC2_INSTANCE_ID2=$(aws ec2 run-instances \
  --query "Reservations[*].Instances[*].PublicIpAddress" \
  --output=text) &&
  echo "Creada instancia EXAMEN-SOR-CLIENTE con IP " $AWS_EC2_INSTANCE_PUBLIC_IP
+
+
+
+
+
 
 
 ## aws ec2 describe-addresses
