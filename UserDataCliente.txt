@@ -3,7 +3,7 @@
 #       UserDataCliente.txt
 #       Es el archivo que pasamos como UserData a la instancia que será el cliente del domionio
 #       Este script se ejecutará en el primer inicio de sesión del cliente
-#       Las etiquetas de entraada y salida se rellenan desde el script CrearDominio.sh
+#       Las etiquetas de entraada y salida se rellenan desde el script 6.Crear_dominio.sh
 #       Además se da valor a las siguientes variables:
 #           - SCRIPT_CLIENTE
 #           - NOMBRE_REPOSITORIO
