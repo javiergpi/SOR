@@ -1,0 +1,61 @@
+
+###########################################################
+#       UserDataCliente.txt
+#       Es el archivo que pasamos como UserData a la instancia que será el cliente del domionio
+#       Este script se ejecutará en el primer inicio de sesión del cliente
+#       Las etiquetas de entraada y salida se rellenan desde el script CrearDominio.sh
+#       Además se da valor a las siguientes variables:
+#           - SCRIPT_CLIENTE
+#           - NOMBRE_REPOSITORIO
+#           - URL_REPOSITORIO
+#           - DNS_DOMINIO
+#           - NOMBRE_CLIENTE
+#
+#  Autor: Javier González Pisano 
+#  Fecha: 02/11/2022
+###########################################################
+
+
+#Abrimos las reglas del Firewall para permitir PING
+echo "1....Abriendo reglas de Firewall...."
+New-NetFirewallRule -DisplayName "Allow inbound ICMPv4" -Direction Inbound -Protocol ICMPv4 -IcmpType 8  -Action Allow
+New-NetFirewallRule -DisplayName "Allow inbound ICMPv6" -Direction Inbound -Protocol ICMPv6 -IcmpType 8  -Action Allow
+New-NetFirewallRule -DisplayName "Allow outbound ICMPv4" -Direction Outbound -Protocol ICMPv4 -IcmpType 8  -Action Allow
+New-NetFirewallRule -DisplayName "Allow outbound ICMPv6" -Direction Outbound -Protocol ICMPv6 -IcmpType 8  -Action Allow
+echo "1....Abiertas reglas de Firewall...."
+
+
+echo "2....Instalando choco y git...."
+# Modo unrestricted para powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+
+# Instalamos Choco para la posterior instalación de Git
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) 
+
+# Instalamos Git
+choco install git.install -y
+echo "3....Instalado choco y git...."
+
+Set-Location -Path "C:\Users\Administrator\Desktop" 
+
+#Clonamos el repositorio remoto
+echo "4....Clonando repositorio remoto...."
+
+Start-Process "C:\Program Files\Git\bin\git.exe"  -ArgumentList "clone $URL_REPOSITORIO"
+echo "4....Clonado repositorio remoto...."
+Start-Sleep -Seconds 1.5
+
+Set-Location -Path "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO" 
+
+echo "5...Personalizando script de unión a dominio...."
+
+"`$DNS_DOMINIO=`"$DNS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_CLIENTE" -Raw) | Set-Content "$SCRIPT_CLIENTE"
+
+echo "5...Personalizado script de unión a PDC...."
+
+
+#Renombramos el equipo
+echo "6....Renombramos y reiniciamos...."
+
+Rename-Computer -NewName $NOMBRE_CLIENTE 
+Restart-Computer 
