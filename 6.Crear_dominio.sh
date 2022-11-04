@@ -189,9 +189,11 @@ aws ec2 authorize-security-group-ingress \
 
 
 ## Abrir los puertos de acceso a la instancia
+                  
+BLOQUE=$(dirname $AWS_Subred_CIDR_BLOCK)
 aws ec2 authorize-security-group-ingress \
   --group-id $AWS_CUSTOM_SECURITY_GROUP_ID \
-  --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "$AWS_Subred_CIDR_BLOCK", "Description": "Trafico interno"}]}]'
+  --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp":"'"$AWS_Subred_CIDR_BLOCK"'", "Description": "Trafico interno"}]}]'
 
 
 
@@ -239,7 +241,7 @@ AWS_AMI_ID=ami-07a53499a088e4a8c
 AWS_EC2_INSTANCE_ID=$(aws ec2 run-instances \
   --image-id $AWS_AMI_ID \
   --instance-type t2.medium \
-  --key-name $AWS_Nombre_Clave \
+  --key-name "$AWS_Nombre_Clave" \
   --user-data file://${BASEDIR}/UserDataPDC.txt \
   --monitoring "Enabled=false" \
   --security-group-ids $AWS_CUSTOM_SECURITY_GROUP_ID \
