@@ -2,7 +2,7 @@
 #       UserDataPDC.txt
 #       Es el archivo que pasamos como UserData a la instancia que será el PDC
 #       Este script se ejecutará en el primer inicio de sesión del PDC
-#       Las etiquetas de entraada y salida se rellenan desde el script 6.Crear_dominio.sh
+#       Las etiquetas de entraada y salida se rellenan desde el script CrearDominio.sh
 #       Además se da valor a las siguientes variables:
 #           - SCRIPT_PDC
 #           - NOMBRE_REPOSITORIO
@@ -50,17 +50,51 @@ Start-Process "C:\Program Files\Git\bin\git.exe"  -ArgumentList "clone $URL_REPO
 echo "4....Clonado repositorio remoto...."
 Start-Sleep -Seconds 1.5
 
-Set-Location -Path "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO" 
 
-echo "5...Personalizando script de promoción a PDC...."
+# echo "5...Personalizando script de promoción a PDC...."
+# 
+#  Set-Location -Path "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO\Scripts_Powershell" 
+# "`$NETBIOS_DOMINIO=`"$NETBIOS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_PDC" -Raw) | Set-Content "$SCRIPT_PDC"
+# "`$DNS_DOMINIO=`"$DNS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_PDC" -Raw) | Set-Content "$SCRIPT_PDC"
+# 
+# echo "5...Personalizado script de promoción a PDC...."
 
-"`$NETBIOS_DOMINIO=`"$NETBIOS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_PDC" -Raw) | Set-Content "$SCRIPT_PDC"
-"`$DNS_DOMINIO=`"$DNS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_PDC" -Raw) | Set-Content "$SCRIPT_PDC"
 
-echo "5...Personalizado script de promoción a PDC...."
+echo "6. Creando usuario admin tarea programada...."
+
+if ( -not (Get-LocalUser | Where-Object {$_.Name -eq "admin_programada"}))
+ {
+
+$password=ConvertTo-SecureString "Naranco.22" -AsPlainText -Force
+New-LocalUser "admin_programada" -Password $password   -FullName "temporal" -Description "temporal" -ErrorAction stop
+Add-LocalGroupMember -Group "Administrators" -Member "admin_programada" -ErrorAction stop
+
+}
+
+echo "6. Creado usuario admin tarea programada...."
+
+
+echo "7. Registrando tarea programada...."
+
+$rutaScript=  "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO\Scripts_Powershell\$SCRIPT_PDC"
+
+ $exists = Get-ScheduledTask | Where-Object {$_.TaskName -like 'PromocionaPDC'}
+ if($exists){
+    Unregister-ScheduledTask -TaskName 'ConfiguraAD' -Confirm:$false
+ }
+
+
+$Action = New-ScheduledTaskAction -Execute 'Powershell' -Argument "-NonInteractive -NoLogo -NoProfile -File $rutaScript $DNS_DOMINIO $NETBIOS_DOMINIO"
+$Trigger = New-ScheduledTaskTrigger -AtStartup
+$Settings = New-ScheduledTaskSettingsSet
+$Task = New-ScheduledTask -Action $Action -Trigger $Trigger -Settings $Settings
+
+Register-ScheduledTask -TaskName 'PromocionaPDC' -InputObject $Task -User "admin_programada" -Password "Naranco.22"
+
+echo "7. Registrada tarea programada...."
 
 #Renombramos el servidor
-echo "6....Renombramos y reiniciamos...."
+echo "8....Renombramos y reiniciamos...."
 
 Rename-Computer -NewName $NOMBRE_SERVIDOR 
 Restart-Computer 

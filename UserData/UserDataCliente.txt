@@ -3,13 +3,14 @@
 #       UserDataCliente.txt
 #       Es el archivo que pasamos como UserData a la instancia que será el cliente del domionio
 #       Este script se ejecutará en el primer inicio de sesión del cliente
-#       Las etiquetas de entraada y salida se rellenan desde el script 6.Crear_dominio.sh
+#       Las etiquetas de entraada y salida se rellenan desde el script CrearDominio.sh
 #       Además se da valor a las siguientes variables:
 #           - SCRIPT_CLIENTE
 #           - NOMBRE_REPOSITORIO
 #           - URL_REPOSITORIO
 #           - DNS_DOMINIO
 #           - NOMBRE_CLIENTE
+#           - NOMBRE_SERVIDOR
 #
 #  Autor: Javier González Pisano 
 #  Fecha: 02/11/2022
@@ -43,16 +44,49 @@ echo "4....Clonando repositorio remoto...."
 
 Start-Process "C:\Program Files\Git\bin\git.exe"  -ArgumentList "clone $URL_REPOSITORIO"
 echo "4....Clonado repositorio remoto...."
-Start-Sleep -Seconds 1.5
+# Start-Sleep -Seconds 20
+# 
+# Set-Location -Path "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO\Scripts_Powershell" 
+# 
+# echo "5...Personalizando script de unión a dominio...."
+#
+# "`$DNS_DOMINIO=`"$DNS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_CLIENTE" -Raw) | Set-Content "$SCRIPT_CLIENTE"
+# "`$NOMBRE_SERVIDOR=`"$NOMBRE_SERVIDOR`" `n"  + (Get-Content "$SCRIPT_CLIENTE" -Raw) | Set-Content "$SCRIPT_CLIENTE"
+# echo "5...Personalizado script de unión a PDC...."
 
-Set-Location -Path "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO" 
 
-echo "5...Personalizando script de unión a dominio...."
+echo "6. Creando usuario admin tarea programada...."
 
-"`$DNS_DOMINIO=`"$DNS_DOMINIO`" `n"  + (Get-Content "$SCRIPT_CLIENTE" -Raw) | Set-Content "$SCRIPT_CLIENTE"
+if ( -not (Get-LocalUser | Where-Object {$_.Name -eq "admin_programada"}))
+ {
 
-echo "5...Personalizado script de unión a PDC...."
+$password=ConvertTo-SecureString "Naranco.22" -AsPlainText -Force
+New-LocalUser "admin_programada" -Password $password   -FullName "temporal" -Description "temporal" -ErrorAction stop
+Add-LocalGroupMember -Group "Administrators" -Member "admin_programada" -ErrorAction stop
 
+}
+
+echo "6. Creado usuario admin tarea programada...."
+
+echo "7. Registrando tarea programada...."
+Start-Sleep -Seconds 20
+
+$rutaScript=  "C:\Users\Administrator\Desktop\$NOMBRE_REPOSITORIO\Scripts_Powershell\$SCRIPT_CLIENTE"
+
+ $exists = Get-ScheduledTask | Where-Object {$_.TaskName -like 'UneDominio'}
+ if($exists){
+    Unregister-ScheduledTask -TaskName 'UneDominio' -Confirm:$false
+ }
+
+
+$Action = New-ScheduledTaskAction -Execute 'Powershell' -Argument "-NonInteractive -NoLogo -NoProfile -File $rutaScript $DNS_DOMINIO $NOMBRE_SERVIDOR"
+$Trigger = New-ScheduledTaskTrigger -AtStartup
+$Settings = New-ScheduledTaskSettingsSet
+$Task = New-ScheduledTask -Action $Action -Trigger $Trigger -Settings $Settings
+
+Register-ScheduledTask -TaskName 'UneDominio' -InputObject $Task -User "admin_programada" -Password "Naranco.22"
+
+echo "7. Registrada tarea programada...."
 
 #Renombramos el equipo
 echo "6....Renombramos y reiniciamos...."

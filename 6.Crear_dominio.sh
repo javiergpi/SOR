@@ -1,6 +1,6 @@
 ###########################################################
 #  Autor: Javier González Pisano (basado en Javier Terán González)
-#  Fecha: 02/11/2022
+#  Fecha: 07/11/2022
       #  Creación de varios elementos en AWS Cli:
       #    - Elementos de red: 
       #         Una VPC
@@ -30,49 +30,73 @@
                     
 ###########################################################
 
-#SECCION DE VARIABLES: A CUSTOMIZAR POR EL ALUMNO
+#A RELLENAR POR EL ALUMNO
 
-# VARIABLES AWS
-
-#CIDR de la VPC
-AWS_VPC_CIDR_BLOCK=192.168.66.0/24
-
-#CIDR de la subred pública (deber ser subconjunto de la anterior)
-AWS_Subred_CIDR_BLOCK=192.168.66.0/24
-
-#Dirección privada del PDC en la subred pública
-AWS_IP_Servidor=192.168.66.100
-
-#Dirección privada del cliente en la subred pública
-AWS_IP_Cliente=192.168.66.200
+NN=66
 
 # Nombre de la clave usada para generar contraseñas
 AWS_Nombre_Clave="javier" 
 
+
+################NO TOOCAR DESDE AQUI ###############
+
+# Comprobamos si el número de alumno se ha pasado como parámetro, si es así sobrescribe el número por defecto
+
+if [ $# -eq 1 ]
+  then NN=$1
+fi
+
+###########################################################
+# VARIABLES AWS
+
+#CIDR de la VPC
+AWS_VPC_CIDR_BLOCK=192.168.$NN.0/24
+
+#CIDR de la subred pública (deber ser subconjunto de la anterior)
+AWS_Subred_CIDR_BLOCK=192.168.$NN.0/24
+
+#Dirección privada del PDC en la subred pública
+AWS_IP_Servidor=192.168.$NN.100
+
+#Dirección privada del cliente en la subred pública
+AWS_IP_Cliente=192.168.$NN.200
+
+###########################################################
 # VARIABLES PDC (NECESARIAS PARA CONFIGURACION PDC)
 
-#Nombre del PDC (Cambia por tu número, ejemplo SERVIDOR-00)
-Nombre_Servidor="SERVIDOR-PROFE"
+#Nombre del PDC 
+Nombre_Servidor="SERVIDOR-$NN"
+
+#Nombre DNS del dominio 
+DNS_Dominio="dominio$NN.local"
+
+#Nombre NETBIOS del dominio
+# Ejemplo DOMINIO00
+NETBIOS_Dominio="DOMINIO$NN"
+
+###########################################################
+# VARIABLES CLIENTE
 
 #Nombre del CLIENTE (Cambia por tu número, ejemplo CLIENTE00-01)
-Nombre_Cliente="CLIENTEPROFE-01"
+Nombre_Cliente="CLIENTE$NN-01"
 
-#Nombre DNS del dominio (cambia por tu número, ejemplo dominio00.local)
-DNS_Dominio="dominioprofe.local"
 
-#Nombre NETBIOS del dominio. Pondremos el DNS sin el sufijo y en mayúsculas, por convención.
-# Ejemplo DOMINIO00
-NETBIOS_Dominio="DOMINIOPROFE"
+###########################################################
+# OTRAS VARIABLES
 
-#URL Repositorio (no tocar)
+#URL Repositorio 
 URL_Repositorio="https://github.com/javiergpi/SOR-Pruebas.git"
 
-#Script para promocion PDC (no tocar)
+#Script para promocion PDC 
 Script_PDC="PromocionaPDC.ps1"
 
-#Script para unir cliente a dominio (no tocar)
+#Script para unir cliente a dominio
 Script_Cliente="UneDominio.ps1"
 
+
+###########################################################
+###########################################################
+# COMANDOS AWSCLI PARA CREAR LA INFRASESTRUCTURA
 
 ## Crear una VPC (Virtual Private Cloud) con su etiqueta
 ## La VPC tendrá un bloque IPv4 proporcionado por el usuario y uno IPv6 de AWS
@@ -187,10 +211,7 @@ aws ec2 authorize-security-group-ingress \
   --group-id $AWS_CUSTOM_SECURITY_GROUP_ID \
   --ip-permissions '[{"IpProtocol": "tcp", "FromPort": 3389, "ToPort": 3389, "IpRanges": [{"CidrIp": "0.0.0.0/0", "Description": "Allow RDP"}]}]'
 
-
-## Abrir los puertos de acceso a la instancia
-                  
-BLOQUE=$(dirname $AWS_Subred_CIDR_BLOCK)
+## Permitimos el tráfico entre instancias de la subred   
 aws ec2 authorize-security-group-ingress \
   --group-id $AWS_CUSTOM_SECURITY_GROUP_ID \
   --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp":"'"$AWS_Subred_CIDR_BLOCK"'", "Description": "Trafico interno"}]}]'
@@ -209,7 +230,7 @@ aws ec2 create-tags \
 # Modificamos el archivo UserDataPDC.txt para añadir datos de personalización.
 # Añadimos contenido al principio (tag de entrada y variables) y al final
 
-BASEDIR=$(cd $(dirname $0) && pwd)
+BASEDIR=$(cd $(dirname $0) && pwd)/UserData
 
 sed -i "1 i\$SCRIPT_PDC=\"${Script_PDC}\" \n" "${BASEDIR}/UserDataPDC.txt"
 # Extraemos el nombre del respositorio de la URL
@@ -229,6 +250,7 @@ sed -i "1 i\$SCRIPT_CLIENTE=\"${Script_Cliente}\" \n" "${BASEDIR}/UserDataClient
 sed -i "1 i\$NOMBRE_REPOSITORIO=\"${Nombre_Repositorio}\" \n" "${BASEDIR}/UserDataCliente.txt"
 sed -i "1 i\$URL_REPOSITORIO=\"${URL_Repositorio}\" \n" "${BASEDIR}/UserDataCliente.txt"
 sed -i "1 i\$DNS_DOMINIO=\"${DNS_Dominio}\" \n" "${BASEDIR}/UserDataCliente.txt"
+sed -i "1 i\$NOMBRE_SERVIDOR=\"${Nombre_Servidor}\" \n" "${BASEDIR}/UserDataCliente.txt"
 sed -i "1 i\$NOMBRE_CLIENTE=\"${Nombre_Cliente}\" \n" "${BASEDIR}/UserDataCliente.txt"
 sed -i '1s/^/<powershell> \n /' "${BASEDIR}/UserDataCliente.txt"
 sed -i "$ a </powershell> \n"  "${BASEDIR}/UserDataCliente.txt"
@@ -318,4 +340,13 @@ aws ec2 associate-address --instance-id $AWS_EC2_INSTANCE_ID2 --allocation-id $A
  --output=text) &&
  echo "11. Creada instancia cliente con IP " $AWS_EC2_INSTANCE_PUBLIC_IP
 
+
+echo "12. Las instancias se están configurando. Este proceso podría llevar hasta 10 minutos..."
+echo "12.1. Instalando rol de AD en $Nombre_Servidor..."
+sleep 300
+echo "12.2. Promocionando $NNombre_Servidor a Controlador de dominio..."
+sleep 200
+echo "12.3. Agreando $Nombre_Cliente al dominio..."
+sleep 100
+echo "12. Las instancias ya se han configurado. "
 
