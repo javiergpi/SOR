@@ -27,6 +27,8 @@ While(!$ping){
     }
 }
 
+Start-Sleep -Seconds 120
+
 $username="admin_programada"
 $password = ConvertTo-SecureString "Naranco.22" -AsPlainText -Force
 $Credenciales = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $password

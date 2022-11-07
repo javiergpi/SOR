@@ -85,7 +85,7 @@ Nombre_Cliente="CLIENTE$NN-01"
 # OTRAS VARIABLES
 
 #URL Repositorio 
-URL_Repositorio="https://github.com/javiergpi/SOR-Pruebas.git"
+URL_Repositorio="https://github.com/javiergpi/SOR.git"
 
 #Script para promocion PDC 
 Script_PDC="PromocionaPDC.ps1"
