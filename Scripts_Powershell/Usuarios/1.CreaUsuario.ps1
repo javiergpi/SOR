@@ -10,20 +10,20 @@
     Uso: CreaUsuario nombre OU turno
          Crea un usuario en el dominio informaticanaranco.local, en la UO especificada y en un grupo con la misma UO
          turno=[m|t|d]
-             m --> MaÃ±ana
+             m --> Mañana
              t --> Tarde
-             d --> DÃ­a (sin restricciones horarias)
+             d --> Día (sin restricciones horarias)
     PRERREQUISITOS
-         Debe existir una UO raÃ­z llamada como la UOPrincipal
-         Deben existir las plantillas de usuario _maÃ±ana y _tarde con las horas de acceso definidas
+         Debe existir una UO raíz llamada como la UOPrincipal
+         Deben existir las plantillas de usuario _mañana y _tarde con las horas de acceso definidas
     Secuencia de acciones:
          1. Crea una UO como el primer argumento que le paso (en mayus).  Si ya existe no se crea
          2. Crea un grupo como el primer argumento que le paso (en minus). Si ya existe no se crea
          3. Crea un usuario con el login del primer argumento que le paso. Si ya existe no lo crea.
              Nombre de usuario = login
-             Password = login (debe cambiarse en el primer inicio de sesiÃ³n)
-        4. AÃ±ade al usuario al grupo
-        5. Establece las restricciones horarias correspondientes a partir de la plantilla (maÃ±ana o tarde)
+             Password = login (debe cambiarse en el primer inicio de sesión)
+        4. Añade al usuario al grupo
+        5. Establece las restricciones horarias correspondientes a partir de la plantilla (mañana o tarde)
  #>
  
 
@@ -86,24 +86,24 @@
 
   }
 
- # 4. Se aÃ±ade el usuario al grupo
+ # 4. Se añade el usuario al grupo
  Try{
    $g=Get-ADGroup -Identity $grupo
    Add-ADGroupMember $g $loginUsuario
-   "4.AÃ±adiendo usuario $loginUsuario al grupo $grupo" 
+   "4.Añadiendo usuario $loginUsuario al grupo $grupo" 
 
  }
  Catch{
-    " - ERROR: No se puede aÃ±adir $loginUsuario al grupo $grupo"
+    " - ERROR: No se puede añadir $loginUsuario al grupo $grupo"
  }
 
-# 5. En funciÃ³n del turno copiamos las restricciones de horario de la plantilla correspondiente:
-#     Si el turno es "d" (dÃ­a entero) no se hace nada
-#     Si el turno es "m" o "t" se copian las restricciones horarias de la plantilla "_maÃ±ana" o "_tarde"
+# 5. En función del turno copiamos las restricciones de horario de la plantilla correspondiente:
+#     Si el turno es "d" (día entero) no se hace nada
+#     Si el turno es "m" o "t" se copian las restricciones horarias de la plantilla "_mañana" o "_tarde"
    
 If($turno -ne "d"){
     If($turno -eq "m"){
-      $plantilla="_maÃ±ana"
+      $plantilla="_mañana"
     }
     If($turno -eq "t"){
       $plantilla="_tarde"
