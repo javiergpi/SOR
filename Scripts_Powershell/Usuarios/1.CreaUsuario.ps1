@@ -1,5 +1,3 @@
-
-
 <# VARIABLES: A RELLENAR POR EL ALUMNO #>
 
  $dominio="dominioN" <# Sin .local #>
