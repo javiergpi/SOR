@@ -31,7 +31,7 @@ $nombreFichero=$args.getValue(0);
 
 Import-Csv $nombreFichero -Delimiter ";" | ForEach-Object {
  $grupo = $_.Grupo
- $numeroAlumnos = $_.NumeroUsuarios
+ $numeroUsuarios = $_.NumeroUsuarios
  $turno = $_.Turno
 
  for($i=1;$i -le $numeroUsuarios;$i++){

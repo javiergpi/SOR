@@ -1,7 +1,11 @@
+
 <# VARIABLES: A RELLENAR POR EL ALUMNO #>
 
  $dominio="dominioN" <# Sin .local #>
  $UOPrincipal="UO_MOCOSOFT" <# Cambiar por tu empresa #>
+
+ $plantilla_mañana="_mañana";
+ $plantilla_tarde="_tarde";
 
 
 <# CreaUSuario.ps1
@@ -101,10 +105,10 @@
    
 If($turno -ne "d"){
     If($turno -eq "m"){
-      $plantilla="_mañana"
+      $plantilla="$plantilla_mañana"
     }
     If($turno -eq "t"){
-      $plantilla="_tarde"
+      $plantilla="$plantilla_tarde"
     }
 
  $usuarioPlantilla=Get-ADUser -Identity $plantilla -Properties logonHours
