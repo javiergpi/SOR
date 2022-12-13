@@ -197,7 +197,7 @@ echo "6. Creando grupo de seguridad para las instancias..."
 ## Crear un grupo de seguridad
 aws ec2 create-security-group \
   --vpc-id $AWS_ID_VPC \
-  --group-name SOR-Windows-SG \
+  --group-name SOR-EXAMEN-Windows-SG \
   --description 'SOR-EXAMEN-Windows-SG'
 
 
