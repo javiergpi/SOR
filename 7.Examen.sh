@@ -38,7 +38,7 @@ NN=66
 AWS_Nombre_Clave="vockey" 
 
 
-################NO TOOCAR DESDE AQUI ###############
+################NO TOCAR DESDE AQUI ###############
 
 # Comprobamos si el número de alumno se ha pasado como parámetro, si es así sobrescribe el número por defecto
 
@@ -169,7 +169,7 @@ AWS_DEFAULT_ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
   --output text) &&
 aws ec2 create-tags \
 --resources $AWS_DEFAULT_ROUTE_TABLE_ID \
---tags "Key=Name,Value=SOR ruta por defecto"
+--tags "Key=Name,Value=SOR EXAMEN ruta por defecto"
 
 ## Añadir etiquetas a la tabla de rutas
 aws ec2 create-tags \
