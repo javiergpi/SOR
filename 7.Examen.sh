@@ -259,7 +259,7 @@ sed -i "$ a </powershell> \n"  "${BASEDIR}/UserDataCliente.txt"
 
 ## Crear una instancia EC2  (con una imagen Windows Server 2022 Base )
 echo "7. Creando instancia SERVIDOR..."
-AWS_AMI_ID=ami-07a53499a088e4a8c 
+AWS_AMI_ID=ami-0e38fa17744b2f6a5 
 AWS_EC2_INSTANCE_ID=$(aws ec2 run-instances \
   --image-id $AWS_AMI_ID \
   --instance-type t2.medium \
@@ -288,7 +288,7 @@ aws ec2 create-tags \
 
 
 echo "8. Creando instancia CLIENTE..."
-AWS_AMI_ID=ami-07a53499a088e4a8c
+AWS_AMI_ID=ami-0e38fa17744b2f6a5
 AWS_EC2_INSTANCE_ID2=$(aws ec2 run-instances \
   --image-id $AWS_AMI_ID \
   --instance-type t2.small \
